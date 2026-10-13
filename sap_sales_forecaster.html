@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SAP License Sales Forecaster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F9; --surface:#FFFFFF; --ink:#12243D; --muted:#5A6B80; --line:#D8DFE8;
+  --accent:#0A64C8; --accent-soft:#E3EEFB; --pos:#0E7C66; --neg:#B83A4B; --warn:#8A5A00; --warn-bg:#FFF3D6;
+  --panel:#12243D; --panel-ink:#F2F5F9; --panel-muted:#9FB1C8; --panel-line:#2A3F5E;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1624; --surface:#14233A; --ink:#E8EEF6; --muted:#9AAABF; --line:#2A3C57;
+    --accent:#5AA6F5; --accent-soft:#17304F; --pos:#4FD1AE; --neg:#F08796; --warn:#F2C46B; --warn-bg:#3A2D10;
+    --panel:#0A111D; --panel-ink:#E8EEF6; --panel-muted:#8FA2BB; --panel-line:#26374F;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#0C1624; --surface:#14233A; --ink:#E8EEF6; --muted:#9AAABF; --line:#2A3C57;
+    --accent:#5AA6F5; --accent-soft:#17304F; --pos:#4FD1AE; --neg:#F08796; --warn:#F2C46B; --warn-bg:#3A2D10;
+    --panel:#0A111D; --panel-ink:#E8EEF6; --panel-muted:#8FA2BB; --panel-line:#26374F;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 120px}
+header h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4vw,36px);line-height:1.15;margin:0 0 8px;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:36px;margin-top:28px;align-items:start}
+fieldset{border:0;border-top:1px solid var(--line);margin:0 0 8px;padding:18px 0 6px;min-width:0}
+legend{font-weight:600;font-size:17px;padding:0 12px 0 0;margin-left:0}
+.sub{color:var(--muted);font-size:13.5px;margin:-2px 0 14px}
+.field{margin-bottom:18px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+label.t,.t{font-weight:500}
+.hint{color:var(--muted);font-size:12.5px}
+.ctl{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:14px;align-items:center;margin-top:6px}
+input[type=number]{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;text-align:right;font-variant-numeric:tabular-nums}
+input[type=number]:focus-visible,.seg input:focus-visible + span,button:focus-visible,input[type=range]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0;height:28px}
+.warn{display:none;margin-top:6px;background:var(--warn-bg);color:var(--warn);font-size:12.5px;padding:6px 10px;border-radius:6px}
+.warn.on{display:block}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.seg label{cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:inline-block;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:14px;transition:background .15s,color .15s,border-color .15s}
+.seg input:checked + span{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:6px 28px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;cursor:pointer;border-radius:6px;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+button:hover{filter:brightness(.96)}
+/* result */
+.result{position:sticky;top:calc(16px + env(safe-area-inset-top,0px));background:var(--panel);color:var(--panel-ink);border-radius:10px;padding:26px 24px 22px}
+.result .lbl{color:var(--panel-muted);font-size:13.5px}
+.big{font-family:var(--serif);font-weight:600;font-size:clamp(48px,7vw,64px);line-height:1.05;margin:4px 0 2px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.big small{font-family:var(--sans);font-size:16px;font-weight:400;color:var(--panel-muted);margin-left:8px;letter-spacing:0}
+.vs{font-size:14px;color:var(--panel-muted)}
+.vs b{font-weight:600}
+.vs .up{color:#6FE0BF}.vs .down{color:#FF9AA8}
+.gauge{margin:22px 0 6px;position:relative;height:44px}
+.gauge .track{position:absolute;left:0;right:0;top:20px;height:4px;background:var(--panel-line);border-radius:2px}
+.gauge .band{position:absolute;top:14px;height:16px;background:rgba(90,166,245,.35);border:1px solid #5AA6F5;border-radius:4px}
+.gauge .pt{position:absolute;top:10px;width:3px;height:24px;background:#fff;border-radius:2px;transform:translateX(-1.5px)}
+.gauge .avg{position:absolute;top:16px;width:1px;height:12px;background:var(--panel-muted)}
+.gauge .ends{position:absolute;left:0;right:0;top:34px;display:flex;justify-content:space-between;font-size:11.5px;color:var(--panel-muted)}
+.range-text{font-size:13.5px;color:var(--panel-muted);margin-bottom:4px}
+.range-text b{color:var(--panel-ink);font-weight:500}
+.drivers{border-top:1px solid var(--panel-line);margin-top:18px;padding-top:14px}
+.drivers h2{font-size:14px;font-weight:600;margin:0 0 2px}
+.drivers p{margin:0 0 10px;font-size:12.5px;color:var(--panel-muted)}
+.dr{display:grid;grid-template-columns:112px minmax(0,1fr) 54px;gap:8px;align-items:center;font-size:12.5px;padding:2.5px 0}
+.dr .nm{color:var(--panel-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr .bar{position:relative;height:10px}
+.dr .bar::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--panel-line)}
+.dr .fill{position:absolute;top:1px;height:8px;border-radius:2px}
+.dr .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--panel-muted)}
+.acc{margin-top:16px;padding-top:12px;border-top:1px solid var(--panel-line);font-size:12.5px;color:var(--panel-muted)}
+/* scenarios */
+.scen{margin-top:40px;border-top:1px solid var(--line);padding-top:20px}
+.scen h2{font-size:17px;margin:0 0 4px}
+.tbl{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:13px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.p{font-weight:600}
+.empty{color:var(--muted);font-size:14px;margin-top:10px}
+.rm{padding:3px 9px;font-size:13px}
+.foot{margin-top:36px;color:var(--muted);font-size:13px;max-width:78ch}
+.mbar{display:none}
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr;gap:20px}
+  .result{position:static}
+  .cats{grid-template-columns:1fr}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--panel);color:var(--panel-ink);padding:10px 20px calc(10px + env(safe-area-inset-bottom,0px));align-items:baseline;justify-content:space-between;gap:12px;border-top:1px solid var(--panel-line)}
+  .mbar .m{font-family:var(--serif);font-weight:600;font-size:26px;font-variant-numeric:tabular-nums}
+  .mbar .r{font-size:12.5px;color:var(--panel-muted)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>SAP license sales forecaster</h1>
+    <p>Enter the details of a portfolio and get the expected license sales in ₹ lakh, with a likely range and the factors pushing the number up or down.</p>
+  </header>
+
+  <div class="grid">
+    <form id="form" onsubmit="return false" aria-label="Portfolio inputs">
+      <fieldset><legend>Pipeline and demand</legend>
+        <p class="sub">What is already in the funnel.</p>
+        <div id="g1"></div>
+      </fieldset>
+      <fieldset><legend>Sales capacity and spend</legend>
+        <p class="sub">People and money committed to the portfolio.</p>
+        <div id="g2"></div>
+      </fieldset>
+      <fieldset><legend>Customer base and pricing</legend>
+        <p class="sub">Who you sell to and how hard you discount.</p>
+        <div id="g3"></div>
+      </fieldset>
+      <fieldset><legend>Portfolio profile</legend>
+        <div class="cats" id="g4"></div>
+      </fieldset>
+      <div class="actions">
+        <button type="button" class="primary" id="save">Save as scenario</button>
+        <button type="button" id="avg">Fill with dataset averages</button>
+      </div>
+    </form>
+
+    <aside class="result" aria-live="polite" aria-label="Forecast result">
+      <div class="lbl">Predicted license sales</div>
+      <div class="big"><span id="pred">–</span><small>₹ lakh</small></div>
+      <div class="vs" id="vs"></div>
+      <div class="gauge" aria-hidden="true">
+        <div class="track"></div><div class="band" id="band"></div><div class="avg" id="avgtick"></div><div class="pt" id="pt"></div>
+        <div class="ends"><span>₹100</span><span>₹520</span></div>
+      </div>
+      <div class="range-text" id="rng"></div>
+      <div class="drivers">
+        <h2>What moves this forecast</h2>
+        <p>Effect of each factor compared with an average portfolio, in ₹ lakh.</p>
+        <div id="drv"></div>
+      </div>
+      <div class="acc">Tested on 120 portfolios the model had never seen: it explained 91% of the variation in sales and missed by ₹14 lakh (4.6%) on average.</div>
+    </aside>
+  </div>
+
+  <section class="scen" aria-labelledby="sc">
+    <h2 id="sc">Scenario comparison</h2>
+    <div class="hint">Change the inputs, save, and change them again to compare options side by side.</div>
+    <div class="tbl" id="tbl"></div>
+  </section>
+
+  <p class="foot">The forecast comes from a linear regression fitted to 600 historical portfolios. It shows how sales have moved with these factors, not proof that changing one factor will cause the same change. Forecasts are most reliable inside the input ranges shown under each field, and the model should be refitted when market conditions or pricing change.</p>
+</div>
+
+<div class="mbar" aria-hidden="true"><div class="m" id="mpred">–</div><div class="r" id="mrng"></div></div>
+
+<script>
+const M={"intercept":59.865115080106534,"sd":19.594627478547462,"ymean":302.7147,
+"coef":{"Opening_Pipeline_Lakh":0.321344,"Qualified_Opportunities":1.126796,"Planned_Marketing_Spend_Lakh":1.796568,"Certified_Sales_Consultants":3.22825,"Existing_SAP_Accounts":0.458045,"Planned_Demos":0.511986,"Average_Proposed_Discount_Pct":-1.696849,"Historical_Win_Rate_Pct":1.165475,"Region|North":4.887874,"Region|South":9.960839,"Region|West":12.871867,"Customer_Segment|Mid-market":-19.760148,"Customer_Segment|SME":-35.217516,"Industry|Manufacturing":9.920614,"Industry|Retail":2.888758,"Industry|Services":-2.032752,"Acquisition_Channel|Direct sales":1.870176,"Acquisition_Channel|Partner referral":10.982672},
+"mean":{"Opening_Pipeline_Lakh":339.068083,"Qualified_Opportunities":30.635,"Planned_Marketing_Spend_Lakh":9.98915,"Certified_Sales_Consultants":7.103333,"Existing_SAP_Accounts":58.823333,"Planned_Demos":35.376667,"Average_Proposed_Discount_Pct":11.59715,"Historical_Win_Rate_Pct":32.94675,"Region|North":0.25,"Region|South":0.266667,"Region|West":0.235,"Customer_Segment|Mid-market":0.316667,"Customer_Segment|SME":0.373333,"Industry|Manufacturing":0.266667,"Industry|Retail":0.24,"Industry|Services":0.261667,"Acquisition_Channel|Direct sales":0.305,"Acquisition_Channel|Partner referral":0.35}};
+const NUM=[
+ {k:'Opening_Pipeline_Lakh',l:'Opening pipeline',u:'₹ lakh',min:80,max:600,step:1,def:340,g:'g1',short:'Pipeline'},
+ {k:'Qualified_Opportunities',l:'Qualified opportunities',u:'deals',min:8,max:54,step:1,def:31,g:'g1',short:'Qualified deals'},
+ {k:'Planned_Demos',l:'Planned demos',u:'demos',min:8,max:64,step:1,def:35,g:'g1',short:'Demos'},
+ {k:'Historical_Win_Rate_Pct',l:'Historical win rate',u:'%',min:15,max:50,step:0.1,def:33,g:'g1',short:'Win rate'},
+ {k:'Certified_Sales_Consultants',l:'Certified sales consultants',u:'people',min:2,max:12,step:1,def:7,g:'g2',short:'Consultants'},
+ {k:'Planned_Marketing_Spend_Lakh',l:'Planned marketing spend',u:'₹ lakh',min:2,max:18,step:0.1,def:10,g:'g2',short:'Marketing'},
+ {k:'Existing_SAP_Accounts',l:'Existing SAP accounts',u:'accounts',min:10,max:109,step:1,def:59,g:'g3',short:'SAP accounts'},
+ {k:'Average_Proposed_Discount_Pct',l:'Average proposed discount',u:'%',min:3,max:20,step:0.1,def:12,g:'g3',short:'Discount'}
+];
+const CAT=[
+ {k:'Region',l:'Region',opts:['East','North','South','West'],def:'South'},
+ {k:'Customer_Segment',l:'Customer segment',opts:['Enterprise','Mid-market','SME'],def:'Mid-market'},
+ {k:'Industry',l:'Industry',opts:['Healthcare','Manufacturing','Retail','Services'],def:'Manufacturing'},
+ {k:'Acquisition_Channel',l:'Acquisition channel',opts:['Digital inbound','Direct sales','Partner referral'],def:'Partner referral'}
+];
+const fmt=(v,d=1)=>new Intl.NumberFormat('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d}).format(v);
+const $=id=>document.getElementById(id);
+const state={};
+const scen=[];let scenN=0;
+
+/* build form */
+NUM.forEach(f=>{
+  state[f.k]=f.def;
+  const d=document.createElement('div');d.className='field';
+  d.innerHTML=`<div class="row"><label class="t" for="n_${f.k}">${f.l} <span class="hint">(${f.u})</span></label><span class="hint">usual range ${f.min}–${f.max}</span></div>
+  <div class="ctl"><input type="range" id="r_${f.k}" min="${f.min}" max="${f.max}" step="${f.step}" value="${f.def}" aria-label="${f.l} slider"><input type="number" id="n_${f.k}" step="${f.step}" value="${f.def}" inputmode="decimal"></div>
+  <div class="warn" id="w_${f.k}">Outside the ${f.min}–${f.max} range the model learned from, so treat this forecast with extra caution.</div>`;
+  $(f.g).appendChild(d);
+  const r=d.querySelector('input[type=range]'),n=d.querySelector('input[type=number]');
+  r.addEventListener('input',()=>{n.value=r.value;state[f.k]=parseFloat(r.value);update()});
+  n.addEventListener('input',()=>{const v=parseFloat(n.value);state[f.k]=isNaN(v)?NaN:v;if(!isNaN(v))r.value=Math.min(f.max,Math.max(f.min,v));update()});
+});
+CAT.forEach(c=>{
+  state[c.k]=c.def;
+  const d=document.createElement('div');d.className='field';
+  d.innerHTML=`<div class="t" id="l_${c.k}">${c.l}</div><div class="seg" role="radiogroup" aria-labelledby="l_${c.k}">`+
+   c.opts.map(o=>`<label><input type="radio" name="${c.k}" value="${o}" ${o===c.def?'checked':''}><span>${o}</span></label>`).join('')+`</div>`;
+  $('g4').appendChild(d);
+  d.querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>{state[c.k]=i.value;update()}));
+});
+
+/* model */
+function predict(s){
+  let p=M.intercept;
+  NUM.forEach(f=>p+=M.coef[f.k]*s[f.k]);
+  CAT.forEach(c=>{p+=M.coef[c.k+'|'+s[c.k]]||0});
+  return p;
+}
+function drivers(s){
+  const out=NUM.map(f=>({n:f.short,v:M.coef[f.k]*(s[f.k]-M.mean[f.k])}));
+  CAT.forEach(c=>{
+    let base=0;c.opts.forEach(o=>{base+=(M.coef[c.k+'|'+o]||0)*(M.mean[c.k+'|'+o]??0)});
+    // baseline category has coefficient 0; share of baseline is implied
+    const sel=M.coef[c.k+'|'+s[c.k]]||0;
+    out.push({n:c.l+': '+s[c.k],v:sel-base});
+  });
+  return out.sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
+}
+const pos=v=>Math.min(100,Math.max(0,(v-100)/(520-100)*100));
+function valid(){return NUM.every(f=>Number.isFinite(state[f.k]))}
+
+function update(){
+  NUM.forEach(f=>{const v=state[f.k];$('w_'+f.k).classList.toggle('on',Number.isFinite(v)&&(v<f.min||v>f.max))});
+  if(!valid()){
+    $('pred').textContent='–';$('vs').textContent='Fill in every number to see the forecast.';$('rng').textContent='';$('drv').innerHTML='';
+    $('band').style.display=$('pt').style.display='none';$('mpred').textContent='–';$('mrng').textContent='';return;
+  }
+  $('band').style.display=$('pt').style.display='';
+  const p=predict(state),lo=p-1.96*M.sd,hi=p+1.96*M.sd,diff=p-M.ymean,pct=diff/M.ymean*100;
+  $('pred').textContent=fmt(p);
+  $('vs').innerHTML=`<b class="${diff>=0?'up':'down'}">${diff>=0?'+':'−'}₹${fmt(Math.abs(diff))} lakh (${diff>=0?'+':'−'}${fmt(Math.abs(pct))}%)</b> vs the average portfolio of ₹${fmt(M.ymean)} lakh`;
+  $('rng').innerHTML=`95% likely range: <b>₹${fmt(lo,0)} to ₹${fmt(hi,0)} lakh</b>`;
+  $('mpred').textContent='₹'+fmt(p)+' lakh';$('mrng').textContent='Range '+fmt(lo,0)+'–'+fmt(hi,0);
+  const b=$('band');b.style.left=pos(lo)+'%';b.style.width=(pos(hi)-pos(lo))+'%';
+  $('pt').style.left=pos(p)+'%';$('avgtick').style.left=pos(M.ymean)+'%';
+  const dr=drivers(state),mx=Math.max(...dr.map(d=>Math.abs(d.v)),1);
+  $('drv').innerHTML=dr.map(d=>{
+    const w=Math.abs(d.v)/mx*50,up=d.v>=0;
+    return `<div class="dr"><span class="nm" title="${d.n}">${d.n}</span><span class="bar"><span class="fill" style="${up?'left:50%':'right:50%'};width:${w}%;background:${up?'#4FD1AE':'#F08796'}"></span></span><span class="v">${up?'+':'−'}${fmt(Math.abs(d.v))}</span></div>`;
+  }).join('');
+}
+
+/* scenarios */
+function renderScen(){
+  if(!scen.length){$('tbl').innerHTML='<div class="empty">No scenarios saved yet. Use “Save as scenario” to start a comparison.</div>';return}
+  const best=Math.max(...scen.map(s=>s.p));
+  $('tbl').innerHTML='<table><thead><tr><th>Scenario</th><th>Profile</th><th class="n">Pipeline</th><th class="n">Consultants</th><th class="n">Discount</th><th class="n">Predicted (₹ lakh)</th><th class="n">95% range</th><th></th></tr></thead><tbody>'+
+   scen.map((s,i)=>`<tr><td>${s.name}</td><td>${s.s.Customer_Segment}, ${s.s.Region}, ${s.s.Industry}</td><td class="n">${fmt(s.s.Opening_Pipeline_Lakh,0)}</td><td class="n">${fmt(s.s.Certified_Sales_Consultants,0)}</td><td class="n">${fmt(s.s.Average_Proposed_Discount_Pct)}%</td><td class="n p">${fmt(s.p)}${s.p===best&&scen.length>1?' (highest)':''}</td><td class="n">${fmt(s.p-1.96*M.sd,0)}–${fmt(s.p+1.96*M.sd,0)}</td><td><button class="rm" data-i="${i}" aria-label="Remove ${s.name}">Remove</button></td></tr>`).join('')+'</tbody></table>';
+  $('tbl').querySelectorAll('.rm').forEach(b=>b.addEventListener('click',()=>{scen.splice(+b.dataset.i,1);renderScen()}));
+}
+$('save').addEventListener('click',()=>{
+  if(!valid()){return}
+  if(scen.length>=8)scen.shift();
+  scenN++;scen.push({name:'Scenario '+scenN,s:{...state},p:predict(state)});renderScen();
+  $('sc').scrollIntoView({behavior:'smooth',block:'start'});
+});
+$('avg').addEventListener('click',()=>{
+  NUM.forEach(f=>{const v=+M.mean[f.k].toFixed(f.step<1?1:0);state[f.k]=v;$('n_'+f.k).value=v;$('r_'+f.k).value=v});
+  update();
+});
+renderScen();update();
+</script>
+</body>
+</html>
